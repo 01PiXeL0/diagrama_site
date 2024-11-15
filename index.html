@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результаты голосования</title>
+    <style>
+        /* Загрузочный экран */
+        #loadingScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.877);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;  /* Добавлено для выравнивания по вертикали */
+        z-index: 1000;
+    }
+
+    #loadingScreen .crownIcon {
+        width: 80px;  /* Устанавливаем размер короны */
+        height: auto;
+        animation: spin 1s linear infinite;
+    }
+
+    #loadingScreen .loadingText {
+        font-size: 1.5em;  /* Размер текста */
+        color: #fff;
+        margin-bottom: 20px; /* Расстояние между текстом и короной */
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+        /* CSS стили для отображения диаграммы */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('/images/background_image.png');
+            background-size: cover;
+            background-position: center;
+            background-color: #3b3b3b;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            flex-direction: column; /* Для вертикальной ориентации на мобильных устройствах */
+        }
+
+        #chartContainer {
+            width: 100%;
+            max-width: 2000px;
+            padding: 20px;
+            text-align: center;
+            overflow-x: auto; /* Горизонтальный скролл */
+            margin-bottom: 40px; /* Отступ снизу для диаграммы */
+        }
+
+        .chartLabel {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            padding-bottom: 10px; /* Добавляем отступ снизу */
+        }
+
+        .totalVotes {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            text-align: center;
+            padding-bottom: 10px; /* Добавляем отступ снизу */
+        }
+
+        .chart {
+            margin-left: 100px;
+            margin-right: 100px;
+            padding-top: 30px;
+            display: flex;
+            align-items: flex-end;
+            gap: 20px;
+            justify-content: flex-start; /* столбцы выравниваются по началу */
+            max-height: 1000px; /* Ограничиваем высоту диаграммы */
+            overflow-y: auto; /* Если столбцы выше, добавим вертикальный скролл */
+        }
+
+        .bar {
+            position: relative;
+            flex: 1 0 80px; /* Даем всем столбцам одинаковую минимальную ширину */
+            max-width: 110px; /* Максимальная ширина столбца */
+            min-width: 110px; /* Минимальная ширина столбца */
+            background-color: black; /* Все столбцы черные */
+            border-radius: 10px 40px 0 0;
+            box-shadow: 0px 4px 20px rgba(255, 255, 255, 0.5); /* Белая тень */
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            transition: height 0.5s ease-in-out;
+        }
+
+        .bar[data-place="1"] {
+            box-shadow: 0px 4px 20px rgba(255, 215, 0, 0.8); 
+            border-left: 4px solid rgba(255, 215, 0, 0.8); /* Левый бордер для 1 места */
+        }
+
+        .bar[data-place="2"] {
+            box-shadow: 0px 4px 20px rgba(192, 192, 192, 0.8); 
+            border-left: 4px solid rgba(192, 192, 192, 0.8); /* Левый бордер для 2 места */
+        }
+
+        .bar[data-place="3"] {
+            box-shadow: 0px 4px 20px rgba(205, 127, 50, 0.8);
+            border-left: 4px solid rgba(205, 127, 50, 0.8); 
+        }
+
+        /* Добавляем текст "1 МЕСТО", "2 МЕСТО", "3 МЕСТО" */
+        .bar[data-place="1"] .placeText,
+        .bar[data-place="2"] .placeText,
+        .bar[data-place="3"] .placeText {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.205);
+            position: absolute;
+            top: 60px;
+            left: 47%;
+            transform: translateX(-50%);
+            transform: rotate(-90deg);
+            white-space: nowrap;
+        }
+
+        .barText {
+            position: absolute;
+            bottom: 100%;
+            transform: translateY(-10px);
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #fff;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Адаптивные стили для мобильных устройств */
+        @media (max-width: 768px) {
+            .chartLabel {
+                padding-left: 10px;
+                font-size: 1.5em; /* Уменьшаем размер текста */
+            }
+
+            .totalVotes {
+                font-size: 1em; /* Уменьшаем размер текста */
+            }
+
+            .chart {
+                margin-left: 20px;
+                margin-right: 20px;
+                padding-top: 30px;
+                gap: 10px; /* Меньше отступов между столбцами */
+                max-height: 500px; /* Ограничиваем высоту для мобильных */
+            }
+
+            .bar {
+                max-height: 500px;
+                max-width: 100px; /* Меньше ширина столбцов для мобильных */
+                min-width: 100px;
+            }
+
+            .placeText {
+                font-size: 1em; /* Уменьшаем размер текста для мест */
+            }
+
+            .barText {
+                font-size: 0.8em; /* Уменьшаем размер текста на мобильных */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Загрузочный экран с короной -->
+    <div id="loadingScreen">
+        <img src="/images/image 13.png" alt="Crown Icon" class="crownIcon">
+        <div style="color: white; font-size: 1.5em; margin-top: 20px;">Загрузка...</div>
+    </div>
+
+    <div id="chartContainer">
+        <div class="chartLabel">Результаты голосования конкурса красоты</div>
+        <div class="totalVotes" id="totalVotes">Всего голосов: 0</div>
+        <div class="chart" id="chart">
+            <!-- Столбцы диаграммы будут добавлены здесь динамически -->
+        </div>
+    </div>
+
+    <script>
+        const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzkFEA4IZXsK1JgPMjulpY6SFhpA4jInBwHQAk8-E6B1jkhIr7X6t7IkBmlCMzRV_de/exec"; // Замените на URL вашего веб-приложения
+
+        async function fetchVotes() {
+            try {
+                const response = await fetch(SHEET_API_URL);
+                const data = await response.json();
+
+                const sortedData = data.sort((a, b) => b.votes - a.votes);
+                const totalVotes = sortedData.reduce((sum, item) => sum + item.votes, 0);
+
+                document.getElementById("totalVotes").textContent = `Всего голосов: ${totalVotes}`;
+
+                const chart = document.getElementById("chart");
+                chart.innerHTML = sortedData.map((item, index) => {
+                    const votes = item.votes; // Количество голосов
+                    const place = index < 3 ? `data-place="${index + 1}"` : ""; // Первые три места выделяем
+                    const placeText = index === 0 ? "1 МЕСТО" : index === 1 ? "2 МЕСТО" : index === 2 ? "3 МЕСТО" : ""; // Добавляем текст мест
+
+                    return `
+                        <div class="bar" ${place}>
+                            <div class="placeText">${placeText}</div>  <!-- Новый элемент для текста -->
+                            <div class="barText">${item.option}: ${votes}</div> <!-- Меняем процент на количество голосов -->
+                        </div>
+                    `;
+                }).join("");
+
+                // Динамическая высота и цвет через JavaScript
+                const bars = document.querySelectorAll('.bar');
+                bars.forEach((bar, index) => {
+                    const percentage = ((sortedData[index].votes / totalVotes) * 100).toFixed(1);
+                    const maxHeight = 1800;
+                    const minHeight = 60;
+                    const heightInPixels = Math.max((percentage / 100) * maxHeight, minHeight);
+                    bar.style.height = `${heightInPixels}px`;
+
+                    bar.style.backgroundColor = 'black';
+                });
+
+                // Скрываем загрузочный экран после загрузки данных
+                document.getElementById("loadingScreen").style.display = "none";
+
+            } catch (error) {
+                console.error("Ошибка при получении данных:", error);
+            }
+        }
+
+        // Обновляем данные каждые 10 секунд
+        setInterval(fetchVotes, 10000);
+        fetchVotes();
+    </script>
+</body>
+</html>
