@@ -19,7 +19,7 @@
         flex-direction: column;  /* Добавлено для выравнивания по вертикали */
         z-index: 1000;
     }
-
+    
     #loadingScreen .crownIcon {
         width: 80px;  /* Устанавливаем размер короны */
         height: auto;
@@ -53,7 +53,20 @@
             overflow: hidden;
             flex-direction: column; /* Для вертикальной ориентации на мобильных устройствах */
         }
+        ::-webkit-scrollbar {
+    width: 12px;
+}
 
+        /* Настройка внешнего вида полосы прокрутки */
+        ::-webkit-scrollbar-thumb {
+            background-color: rgb(27, 27, 27);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background-color: #000000;
+            border-radius: 5px;
+        }
         #chartContainer {
             width: 100%;
             max-width: 2000px;
