@@ -239,7 +239,7 @@
                 const bars = document.querySelectorAll('.bar');
                 bars.forEach((bar, index) => {
                     const percentage = ((sortedData[index].votes / totalVotes) * 100).toFixed(1);
-                    const maxHeight = 1800;
+                    const maxHeight = 1200;
                     const minHeight = 60;
                     const heightInPixels = Math.max((percentage / 100) * maxHeight, minHeight);
                     bar.style.height = `${heightInPixels}px`;
